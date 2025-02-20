@@ -1,4 +1,4 @@
-import { AmbientLight, BoxGeometry, ColorRepresentation, DirectionalLight, Mesh, MeshStandardMaterial, Scene, Vector3 } from 'three';
+import { AmbientLight, ColorRepresentation, DirectionalLight, Scene, Vector3 } from 'three';
 import { CHUNK_SIZE, WORLD_SIZE } from '../../constants/world';
 import Chunk from './Chunk';
 
@@ -47,20 +47,6 @@ class World {
     public getChunk(x: number, z: number): Chunk | null {
         if (x < 0 || x >= this.chunks.length || z < 0 || z >= this.chunks.length) return null;
         return this.chunks[x][z];
-    }
-
-    /**
-     * Adds an example cube to the `THREE.Scene` for testing purpose.
-     *
-     * - The cube is red with a black wireframe and is positioned at the center (0, 0, 0) of the scene.
-     */
-    public displayExampleCube(): void {
-        const cubeSize = 1;
-        const cubeGeometry = new BoxGeometry(cubeSize, cubeSize, cubeSize);
-        const cubeMaterial = new MeshStandardMaterial({ color: 0xff0000 });
-        const cube = new Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(cubeSize / 2, cubeSize / 2, cubeSize / 2);
-        this.scene.add(cube);
     }
 
     /**
