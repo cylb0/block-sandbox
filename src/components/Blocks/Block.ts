@@ -11,16 +11,16 @@ import IRenderable from "../../interfaces/IRenderable";
  */
 abstract class Block implements IRenderable {
     /** `THREE.Object3D` representation of the block. */
-    public object!: Object3D;
+    public object: Object3D;
 
     /** The position of the block in world coordinates. */
-    protected _position: Vector3;
+    protected position: Vector3;
 
     /** The default color of the block. */
-    protected _color: ColorRepresentation;
+    protected color: ColorRepresentation;
 
     /** The block's opacity (if defined) */
-    protected _opacity?: number;
+    protected opacity?: number;
 
     /**
      * Creates a new block instance.
@@ -30,37 +30,42 @@ abstract class Block implements IRenderable {
      * @param opacity - Optional opacity value (0 to 1).
      */
     constructor(position: Vector3, color: ColorRepresentation, opacity?: number) {
-        this._position = position;
-        this._color = color;
-        this._opacity = opacity;
-        this.render();
+        this.position = position;
+        this.color = color;
+        this.opacity = opacity;
+        this.object = this.createObject();
     }
 
     /**
-     * Renders the block by creating a mesh and adding it to the scene.
-     * 
-     * - Creates a `THREE.BoxGeometry` with the block's size.
-     * - Applies the block's color and opacity using a `THREE.MeshBasicMaterial`.
-     * - Adds a `THREE.EdgeGeometry` to outline the block.
-     * - Positions the block 
+     * Creates and return a `THREE.Mesh` representing the current block.
+     *
+     * - Generates a cube applying its color and opacity.
+     *
+     * @returns A `THREE.Mesh` representing the block.
      */
-    public render(): void {
+    protected createObject(): Mesh {
         const blockGeometry = new BoxGeometry(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-        const blockMaterial = new MeshStandardMaterial({ color: this._color });
+        const blockMaterial = new MeshStandardMaterial({ color: this.color });
 
-        if (this._opacity !== undefined) {
+        if (this.opacity !== undefined) {
             blockMaterial.transparent = true;
-            blockMaterial.opacity = this._opacity;
+            blockMaterial.opacity = this.opacity;
         }
 
         const blockMesh = new Mesh(blockGeometry, blockMaterial);
         blockMesh.position.set(
-            Math.floor(this._position.x) + BLOCK_SIZE / 2,
-            Math.floor(this._position.y) + BLOCK_SIZE / 2,
-            Math.floor(this._position.z) + BLOCK_SIZE / 2,
+            Math.floor(this.position.x) + BLOCK_SIZE / 2,
+            Math.floor(this.position.y) + BLOCK_SIZE / 2,
+            Math.floor(this.position.z) + BLOCK_SIZE / 2,
         );
 
-        this.object = blockMesh;
+        return blockMesh;
+    }
+
+    /**
+     * Renders the block in the scene.
+     */
+    public render(): void {
         Scene.getScene().add(this.object);
     }
 
@@ -69,8 +74,8 @@ abstract class Block implements IRenderable {
      * 
      * @returns A cloned `THREE.Vector3` representing the block's position.
      */
-    get position(): Vector3 {
-        return this._position.clone();
+    get getPosition(): Vector3 {
+        return this.position.clone();
     }
 }
 

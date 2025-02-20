@@ -50,13 +50,31 @@ class Player implements IRenderable, IMovable {
         this.world = world;
         this.speed = PLAYER_BASE_SPEED;
         this.isMouseDown = false;
-        
-        this.object = new Group();
-        this.object.add(this.camera);
-        this.object.position.set(PLAYER_SPAWN_POSITION.x, PLAYER_SPAWN_POSITION.y, PLAYER_SPAWN_POSITION.z);
+        this.object = this.createObject();
 
-        this.render();
         this.initEventListeners();
+        this.render();
+    }
+
+    /**
+     * Creates and returns the player's `Object3D` instance.
+     * 
+     * - Creates a new `THREE.Group`.
+     * - Configure the object's position using predefined parameters.
+     * - Adds the player's camera to the group.
+     * - Creates and add the player's `THREE.Mesh` to the object.
+     */
+    private createObject(): Group {
+        const object = new Group();
+        object.position.set(PLAYER_SPAWN_POSITION.x, PLAYER_SPAWN_POSITION.y, PLAYER_SPAWN_POSITION.z);
+        object.add(this.camera);
+
+        const playerGeometry = new BoxGeometry(PLAYER_DIMENSIONS.width, PLAYER_DIMENSIONS.height, PLAYER_DIMENSIONS.length);
+        const playerMaterial = new MeshStandardMaterial({ color: 0x0000ff });
+        const playerModel = new Mesh(playerGeometry, playerMaterial);
+        object.add(playerModel);
+
+        return object;
     }
 
     /**
@@ -68,10 +86,6 @@ class Player implements IRenderable, IMovable {
      */
     public render(): void {
         if (this.scene.children.includes(this.object)) return;
-        const playerGeometry = new BoxGeometry(PLAYER_DIMENSIONS.width, PLAYER_DIMENSIONS.height, PLAYER_DIMENSIONS.length);
-        const playerMaterial = new MeshStandardMaterial({ color: 0x0000ff });
-        const playerModel = new Mesh(playerGeometry, playerMaterial);
-        this.object.add(playerModel);
         this.scene.add(this.object);
     }
 

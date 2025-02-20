@@ -15,6 +15,7 @@ GameHelper.displayGrid();
 const world = new World(scene);
 world.addAmbientLight({ intensity: 1 });
 world.addSunLight({ intensity: 1.2 });
+world.render();
 
 const player = new Player(scene, camera, world);
 const game = new Game(world, player);

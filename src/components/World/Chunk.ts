@@ -87,6 +87,20 @@ class Chunk {
     public getBlock(x: number, y: number, z: number): Block | null {
         return this.blocks[x][y][z];
     }
+
+    /**
+     * Renders all blocks within this chunk.
+     *
+     * - Iterates over the 3D `blocks` array.
+     * - Calls `render()` on each existing block.
+     */
+    public render(): void {
+        this.blocks.forEach(x =>
+            x.forEach(y =>
+                y.forEach(block => block?.render())
+            )
+        );
+    }
 }
 
 export default Chunk;

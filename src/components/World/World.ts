@@ -97,6 +97,20 @@ class World {
         sunLight.castShadow = shadow;
         this.scene.add(sunLight);
     }
+
+    /**
+     * Renders all chunks in the world.
+     *
+     * - Iterates through the 2D `chunks` array.
+     * - Calls `render()` on each chunk to render its blocks.
+     */
+    public render(): void {
+        this.chunks.forEach(x =>
+            x.forEach(chunk => 
+                chunk.render()
+            )
+        );
+    }
 }
 
 export default World;
