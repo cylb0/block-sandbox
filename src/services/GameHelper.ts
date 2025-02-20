@@ -1,6 +1,7 @@
-import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMaterial, Mesh, BoxGeometry, MeshStandardMaterial } from "three";
+import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMaterial, Mesh, BoxGeometry, MeshStandardMaterial, Vector3 } from "three";
 import Scene from './../components/Scene/Scene';
 import { WORLD_SIZE, CHUNK_SIZE } from "../constants/world";
+import TestBlock from "../components/Blocks/TestBlock";
 
 /**
  * A utility service for rendering game related visual helpers
@@ -13,12 +14,8 @@ class GameHelper {
      * - The cube is red with a black wireframe and is positioned at the center (0, 0, 0) of the scene.
      */
     public static displayExampleCube(): void {
-        const cubeSize = 1;
-        const cubeGeometry = new BoxGeometry(cubeSize, cubeSize, cubeSize);
-        const cubeMaterial = new MeshStandardMaterial({ color: 0xff0000 });
-        const cube = new Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(cubeSize / 2, cubeSize / 2, cubeSize / 2);
-        Scene.getScene().add(cube);
+        const cube = new TestBlock(new Vector3(.5, .5, .5));
+        cube.render();
     }
 
     /**

@@ -1,6 +1,7 @@
 import { Vector3 } from "three";
 import { CHUNK_OFFSET, CHUNK_SIZE, WORLD_SIZE } from "../../constants/world";
 import Block from "../Blocks/Block";
+import TestBlock from "../Blocks/TestBlock";
 
 /**
  * Represents a chunk in the game world containing a 3D grid of blocks.
@@ -37,18 +38,12 @@ class Chunk {
      * @returns A 3D array of blocks.
      */
     private initTestChunk(): (Block | null) [][][] {
-        class RedTestBlock extends Block {
-            constructor(position: Vector3) {
-                super(position, 0xff817e);
-            }
-        }
-
         return Array.from({ length: CHUNK_SIZE }, (_, x) =>
             Array.from({ length: CHUNK_SIZE }, (_, z) => {
                 const maxHeight = Math.floor(WORLD_SIZE.depth / 4) * 3;
                 const stackHeight = Math.floor(Math.random() * (maxHeight )) + 1;
                 return Array.from({ length: WORLD_SIZE.depth }, (_, y) => {
-                    return (y < stackHeight) ? new RedTestBlock(new Vector3(x, y, z).add(this.position)) : null;
+                    return (y < stackHeight) ? new TestBlock(new Vector3(x, y, z).add(this.position)) : null;
                 })
             })
         );
