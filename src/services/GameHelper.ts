@@ -1,20 +1,20 @@
-import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMaterial, Mesh, BoxGeometry, MeshStandardMaterial, Vector3 } from "three";
-import Scene from './../components/Scene/Scene';
+import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMaterial, Mesh, Vector3 } from "three";
 import { WORLD_SIZE, CHUNK_SIZE } from "../constants/world";
-import TestBlock from "../components/Blocks/TestBlock";
+import TestBlock from "../blocks/TestBlock";
+import Scene from "../scene/Scene";
+import { BLOCK_OFFSET, BLOCK_SIZE } from "../constants/block";
 
 /**
  * A utility service for rendering game related visual helpers
  */
 class GameHelper {
-    
     /**
      * Adds an example cube to the `THREE.Scene` for testing purpose.
      *
      * - The cube is red with a black wireframe and is positioned at the center (0, 0, 0) of the scene.
      */
     public static displayExampleCube(): void {
-        const cube = new TestBlock(new Vector3(.5, .5, .5));
+        const cube = new TestBlock(new Vector3(0, 0, 0));
         cube.render();
     }
 
@@ -52,6 +52,7 @@ class GameHelper {
         groundMaterial.opacity = .5;
         const ground = new Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
+        ground.position.add(BLOCK_OFFSET);
         Scene.getScene().add(ground);
     }
     
@@ -73,7 +74,7 @@ class GameHelper {
         const createWall = (width: number, height: number, x: number, z: number, rotationY: number = 0) => {
             const wallGeometry = new PlaneGeometry(width, height);
             const wall = new Mesh(wallGeometry, wallMaterial);
-            wall.position.set(x, height / 2, z);
+            wall.position.set(x, 0, z);
             wall.rotation.y = rotationY;
             Scene.getScene().add(wall);
         }

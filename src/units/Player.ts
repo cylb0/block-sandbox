@@ -1,25 +1,16 @@
-import { CAMERA_ROTATION_SENSITIVITY } from '../../constants/camera';
-import IRenderable from '../../interfaces/IRenderable';
-import { PLAYER_DIMENSIONS, PLAYER_SPAWN_POSITION, PLAYER_BASE_SPEED } from '../../constants/player';
-import IMovable from '../../interfaces/IMovable';
-import World from '../World/World';
-import { ArrowHelper, BoxGeometry, Camera, Group, Mesh, MeshStandardMaterial, Scene, Vector3 } from 'three';
+import { ArrowHelper, BoxGeometry, Camera, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import World from "../world/World";
+import Collidable from "../core/Collidable";
+import { PLAYER_BASE_SPEED, PLAYER_DIMENSIONS, PLAYER_OFFSET, PLAYER_SPAWN_POSITION } from "../constants/player";
+import IRenderable from "../interfaces/IRenderable";
+import { CAMERA_ROTATION_SENSITIVITY } from "../constants/camera";
+import IMovable from "../interfaces/IMovable";
+import Scene from "../scene/Scene";
+import { CHUNK_SIZE, GRAVITY, MAX_VELOCITY, WORLD_SIZE } from "../constants/world";
+import { BLOCK_OFFSET, BLOCK_SIZE } from "../constants/block";
+import Block from "../blocks/Block";
 
-/**
- * Represents the player entity in the scene.
- *
- * Implements:
- * - `IRenderable` → Allows the player to be rendered in the scene.
- * - `IMovable` → Handles player movement.
- */
-class Player implements IRenderable, IMovable {
-    /**
-     * The `THREE.Group` object representing the player's entity.
-     *
-     * - Contains the player model and camera.
-     * - Used for rendering and transformations.
-     */
-    public object: Group;
+class Player extends Collidable implements IMovable, IRenderable {
     private scene: Scene;
     private camera: Camera;
     private world: World;
@@ -33,6 +24,8 @@ class Player implements IRenderable, IMovable {
     private isMouseDown: boolean;
     /** Debugging tool to visualize the player's forward direction. */
     private arrowHelper: ArrowHelper | null = null;
+    /** Wether the player is currently on the ground. */
+    private isGrounded: boolean = false;
 
     /**
      * Creates a new `Player` instance.
@@ -40,80 +33,153 @@ class Player implements IRenderable, IMovable {
      * - Initializes movement, camera and event listeners.
      * - Calls `render()` to create the player model.
      *
-     * @param scene - The `THREE.Scene` where the player is exists.
      * @param camera - The `THREE.Camera` attached to the player.
      * @param world - The `World` instance managing chunks and blocks.
      */
     constructor(scene: Scene, camera: Camera, world: World) {
+        const playerGroup = new Group();
+        const playerModel = Player.createPlayer();
+        playerGroup.add(playerModel);
+        const position = new Vector3(PLAYER_SPAWN_POSITION.x, PLAYER_SPAWN_POSITION.y, PLAYER_SPAWN_POSITION.z);
+        super(position, playerGroup);
+
+        // this.object.add(camera);
+        camera.position.set(4, 4, 4);
+        camera.lookAt(3, 0, 0);
+
         this.scene = scene;
         this.camera = camera;
         this.world = world;
         this.speed = PLAYER_BASE_SPEED;
         this.isMouseDown = false;
-        this.object = this.createObject();
 
         this.initEventListeners();
         this.render();
     }
 
     /**
-     * Creates and returns the player's `Object3D` instance.
-     * 
-     * - Creates a new `THREE.Group`.
-     * - Configure the object's position using predefined parameters.
-     * - Adds the player's camera to the group.
-     * - Creates and add the player's `THREE.Mesh` to the object.
-     */
-    private createObject(): Group {
-        const object = new Group();
-        object.position.set(PLAYER_SPAWN_POSITION.x, PLAYER_SPAWN_POSITION.y, PLAYER_SPAWN_POSITION.z);
-        object.add(this.camera);
-
-        const playerGeometry = new BoxGeometry(PLAYER_DIMENSIONS.width, PLAYER_DIMENSIONS.height, PLAYER_DIMENSIONS.length);
-        const playerMaterial = new MeshStandardMaterial({ color: 0x0000ff });
-        const playerModel = new Mesh(playerGeometry, playerMaterial);
-        object.add(playerModel);
-
-        return object;
-    }
-
-    /**
      * Renders the player in the scene.
-     * 
-     * - Creates a `THREE.Mesh` model for the player.
-     * - Adds the model to the instance's `object` property.
-     * - Adds the `object` to the `THREE.Scene`.
      */
     public render(): void {
-        if (this.scene.children.includes(this.object)) return;
-        this.scene.add(this.object);
+        Scene.getScene().add(this.object);
     }
 
     /**
      * Moves the player depending on user inputs.
-     */
+     * 
+     * - Negates direction on the y axis to prevent flying.
+     * - Applies gravity.
+     * - Updates bounding box of the player.
+    */
     public move(): void {
         const direction = this.getForwardDirection();
+        direction.y = 0;
         const right = this.getRightDirection();
 
         if (this.keys['KeyA']) this.moveDirection(right, 1);
         if (this.keys['KeyD']) this.moveDirection(right, -1);
         if (this.keys['KeyW']) this.moveDirection(direction, 1)
         if (this.keys['KeyS']) this.moveDirection(direction, -1);
-
-        this.updateDebugArrow();
+        this.applyGravity();
+        this.updateBoundingBox();
     }
 
     /**
      * Moves the player in a given direction.
-     *
+     * 
+     * - Calls `updateGroundedState()` to check if player should fall from his next position.
      * @param direction - The normalized direction vector.
      * @param multiplier - The movement intensity (negative to move backwards).
      */
     public moveDirection(direction: Vector3, multiplier: number): void {
-        this.object.position.addScaledVector(direction, this.speed * multiplier);
+        const nextPosition = this.object.position.clone().addScaledVector(direction, this.speed * multiplier);
+        this.position = nextPosition;
+        this.updateGroundedState();
     }
 
+    /**
+     * Applies gravity to the player.
+     * 
+     * - Increases `velocityY` based on `GRAVITY`.
+     * - Calls `handleGroundCollision()` to check for collision and adjust position.
+     */
+    private applyGravity(): void {
+        if (this.isGrounded) return;
+    
+        this.velocityY += GRAVITY;
+        if (this.velocityY > MAX_VELOCITY) {
+            this.velocityY = MAX_VELOCITY;
+        }
+
+        const nextPosition = this.object.position.clone();
+        nextPosition.y += this.velocityY;
+        
+        this.handleGroundCollision(nextPosition);
+    }
+
+    /**
+     * Updates the `isGrounded` state by checking if there is a block below.
+     * 
+     * - If no block is found below, gravity will be applied.
+     */
+    private updateGroundedState(): void {
+        const checkPosition = this.position.clone();
+        checkPosition.y -= .1;
+        this.isGrounded = this.getBlockAt(checkPosition) !== null || this.isBelowBedrock(checkPosition);
+    }
+
+    /**
+     * Handles collision with the ground.
+     * 
+     * - If the player will hit a block, adjust his position to stand on top.
+     * - If the player is below bedock, resets position to `PLAYER_OFFSET`.
+     * - Otherwise, let him free fall.
+     * 
+     * @param nextPosition - The player's next computed position.
+     */
+    private handleGroundCollision(nextPosition: Vector3): void {
+        const blockBelow = this.getBlockAt(nextPosition);
+        if (blockBelow == null) {
+            if (this.isBelowBedrock(nextPosition)) {
+                this.velocityY = 0;
+                this.isGrounded = true;
+                this.position.y = PLAYER_OFFSET;
+            } else {
+                this.isGrounded = false;
+                this.position.y += this.velocityY;
+            }
+            return;
+        }
+        this.velocityY = 0;
+        this.isGrounded = true;
+        this.position.y = blockBelow.position.y + 1 + PLAYER_OFFSET;
+    }
+
+    /**
+     * Checks wether or not the given player position is below floor.
+     *
+     * - It leverages `PLAYER_OFFSET` to adjust to player's lowest point.
+     * 
+     * @param position - The position to check.
+     * @returns `true` if player's position is lower than world floor, `false` otherwise.
+     */
+    private isBelowBedrock(position: Vector3): boolean {
+        return position.y <= PLAYER_OFFSET;
+    }
+
+    /**
+     * Creates and returns a `THREE.Mesh` representing the player.
+     *
+     * - Generates a box-shaped mesh using predefined dimensions.
+     *
+     * @returns A `THREE.Mesh` representing the player.
+     */
+    private static createPlayer(): Mesh {
+        const playerGeometry = new BoxGeometry(PLAYER_DIMENSIONS.width, PLAYER_DIMENSIONS.height, PLAYER_DIMENSIONS.length);
+        const playerMaterial = new MeshStandardMaterial({ color: 0x0000ff });
+        return new Mesh(playerGeometry, playerMaterial);
+    } 
+    
     /**
      * Handles key press events by setting the corresponding key state to `true`.
      * 
@@ -196,31 +262,13 @@ class Player implements IRenderable, IMovable {
     }
 
     /**
-     * Adds a debug arrow to the scene.
+     * Retrieves the block at given world coordinates.
      * 
-     * - Debug arrow always points to the player's direction.
-     * - The arrow starts below the player to not obstruct view.
+     * @param position - The world coordinates to look for a block.
+     * @returns A `Block` if found, `null` otherwise.
      */
-    private initDebugArrow(): void {
-        const direction = new Vector3(0, 0, 1);
-        const startPosition = this.object.position.clone().add(new Vector3(0, -1, 0));
-        this.arrowHelper = new ArrowHelper(direction, startPosition, -5, 0xffc0cb);
-        this.scene.add(this.arrowHelper);
-    }
-
-    /**
-     * Updates the debug arrow's direction to match player's.
-     * 
-     * - Ensures the arrow always is pointing the same direction as player.
-     * - Ensure the arrow stays below the player for visibility.
-     */
-    private updateDebugArrow(): void {
-        if (!this.arrowHelper) return;
-        const direction = new Vector3();
-        this.object.getWorldDirection(direction);
-        this.arrowHelper.setDirection(direction);
-        const updatedPosition = this.object.position.clone().add(new Vector3(0, -1, 0));
-        this.arrowHelper.position.copy(updatedPosition);
+    private getBlockAt(position: Vector3): Block | null {
+        return this.world.getBlockAt(position)
     }
 }
 

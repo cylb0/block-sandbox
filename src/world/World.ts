@@ -1,6 +1,7 @@
 import { AmbientLight, ColorRepresentation, DirectionalLight, Scene, Vector3 } from 'three';
-import { CHUNK_SIZE, WORLD_SIZE } from '../../constants/world';
+import { CHUNK_SIZE, WORLD_OFFSET, WORLD_SIZE } from '../constants/world';
 import Chunk from './Chunk';
+import Block from '../blocks/Block';
 
 /**
  * Represents the game world, manages chunks, terrain, lighting and scene elements.
@@ -10,7 +11,7 @@ class World {
     private scene: Scene;
 
     /**
-     * 2D array of chunks representing the terrain.
+     * 2D array of chunks representing the terrain on [x][z] axes.
     */
     private chunks: Chunk [][];
 
@@ -28,26 +29,62 @@ class World {
      * Generates and initializes chunks
      * 
      * - Places each chunk on it's `(x, z)` coordinates.
+     * - The world is centered around `(0, 0, 0)` so chunk can have negative positions.
+     * - Leverages `halfworld` to offset chunks.
      * 
      * @returns A 2D array of chunks.
      */
     private generateChunks(): Chunk [][] {
+        const halfworld = Math.floor(WORLD_SIZE.size / 2);
+
         return Array.from({ length: WORLD_SIZE.size }, (_, x) =>
-            Array.from({ length: WORLD_SIZE.size }, (_, z) => new Chunk(new Vector3(x * CHUNK_SIZE, 0, z * CHUNK_SIZE)))
+            Array.from({ length: WORLD_SIZE.size }, (_, z) => {
+                const worldX = (x - halfworld) * CHUNK_SIZE;
+                const worldZ = (z - halfworld) * CHUNK_SIZE;
+                const chunkPosition = new Vector3(worldX, 0, worldZ);
+                return new Chunk(chunkPosition);
+            })
         );
     }
 
     /**
-     * Retrieves a chunk at given coordinates.
+     * Retrieves the chunk at a given world position.
      *
-     * @param x - The x-coordinate of the chunk.
-     * @param z - The z-coordinate of the chunk.
-     * @returns A `Chunk` object if found, `null` otherwise.
+     * - Converts world coordinates to `chunks` array indexes.
+     * - Returns `null` if no chunk is found.
+     * 
+     * @param position - The world position to check.
+     * @returns The chunk at the given position or `null` if not found.
      */
-    public getChunk(x: number, z: number): Chunk | null {
-        if (x < 0 || x >= this.chunks.length || z < 0 || z >= this.chunks.length) return null;
-        return this.chunks[x][z];
+    public getChunkAt(position: Vector3): Chunk | null {
+        const halfWorldSize = Math.floor(WORLD_SIZE.size / 2);
+        const chunkX = Math.floor(position.x / CHUNK_SIZE) + halfWorldSize
+        const chunkZ = Math.floor(position.z / CHUNK_SIZE) + halfWorldSize
+
+        return this.chunks[chunkX]?.[chunkZ] || null;
     }
+
+    /**
+     * Retrieves the block at a given world position.
+     *
+     * - Finds the chunk searched block belongs to.
+     * - Convers world coordinates to local chunk coordinates.
+     * - Returns `null` if no block is found.
+     * 
+     * @param position - The world position to check.
+     * @returns The block at the given position or `null` if not found.
+     */
+    public getBlockAt(position: Vector3): Block | null {
+        const chunk = this.getChunkAt(position);
+        if (!chunk) return null;
+
+        const blockX = Math.floor((position.x % CHUNK_SIZE + CHUNK_SIZE) % CHUNK_SIZE);
+        const blockY = Math.floor(position.y);
+        const blockZ = Math.floor((position.z % CHUNK_SIZE + CHUNK_SIZE) % CHUNK_SIZE);
+
+        return chunk.getBlock(blockX, blockY, blockZ);
+    }
+    
 
     /**
      * Adds ambient lighting to the scene.

@@ -1,7 +1,8 @@
 import { Vector3 } from "three";
-import { CHUNK_OFFSET, CHUNK_SIZE, WORLD_SIZE } from "../../constants/world";
-import Block from "../Blocks/Block";
-import TestBlock from "../Blocks/TestBlock";
+import { CHUNK_SIZE, WORLD_SIZE } from "../constants/world";
+import TestBlock from "../blocks/TestBlock";
+import Block from "../blocks/Block";
+import { block } from "sharp";
 
 /**
  * Represents a chunk in the game world containing a 3D grid of blocks.
@@ -11,13 +12,13 @@ import TestBlock from "../Blocks/TestBlock";
  */
 class Chunk {
     /**
-     * 3D array representing blocks within the chunk on `(x, y, z)` axes.
+     * 3D array representing blocks within the chunk on `(x, z, y)` axes.
      *
      * - `(x, z)` axis represent coordinates on the floor while `y` axis is used for depth.
     */
     private blocks: (Block | null) [][][];
     /** Position of the chunk in world coordinates. */
-    private position: Vector3;
+    public position: Vector3;
 
     /**
      * Creates a new chunk at the given world position.
@@ -25,8 +26,16 @@ class Chunk {
      * @param position - The chunk's position in world frame coordinates. 
      */
     constructor(position: Vector3) {
-        this.position = position.add(CHUNK_OFFSET);
+        this.position = position;
         this.blocks = this.initTestChunk(); // Test
+        console.log('chunk created at world coordinates: ', this.position.x, this.position.z)
+        this.blocks.forEach((col, x) =>
+            col.forEach((row, y) =>
+                row.forEach((block, z) => {
+                    if (block) console.log(block.position)
+                })
+            )
+        )
     }
 
     /**
@@ -38,15 +47,34 @@ class Chunk {
      * @returns A 3D array of blocks.
      */
     private initTestChunk(): (Block | null) [][][] {
-        return Array.from({ length: CHUNK_SIZE }, (_, x) =>
-            Array.from({ length: CHUNK_SIZE }, (_, z) => {
-                const maxHeight = Math.floor(WORLD_SIZE.depth / 4) * 3;
-                const stackHeight = Math.floor(Math.random() * (maxHeight )) + 1;
-                return Array.from({ length: WORLD_SIZE.depth }, (_, y) => {
-                    return (y < stackHeight) ? new TestBlock(new Vector3(x, y, z).add(this.position)) : null;
+        return Array.from({ length: CHUNK_SIZE }, (_,x) =>
+            Array.from({ length: WORLD_SIZE.depth }, (_, y) => {
+                return Array.from({ length: CHUNK_SIZE }, (_, z) => {
+                    return this.generateTestBlock(x, y, z);
                 })
             })
         );
+    }
+
+    /**
+     * Generates a block at the given `(x, y, z)` position inside the chunk.
+     *
+     * - Uses the chunk's position as a base.
+     * - Offsets the block to align with the world grid.
+     * 
+     * @param x - x-coordinate inside the chunk.
+     * @param y - y-coordinate inside the chunk.
+     * @param z - z-coordinate inside the chunK.
+     * @returns A `Block` or `null` if no block should be positioned.
+     */
+    private generateTestBlock(x: number, y: number, z: number): Block | null {
+        const worldX = this.position.x + x;
+        const worldZ = this.position.z + z;
+        const worldY = y;
+        const maxY = Math.floor(Math.random() * WORLD_SIZE.depth / 2);
+        if (y < maxY) return new TestBlock(new Vector3(worldX, worldY, worldZ));
+
+        return null;
     }
 
     /**
@@ -96,6 +124,7 @@ class Chunk {
             )
         );
     }
+
 }
 
 export default Chunk;

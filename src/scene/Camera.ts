@@ -1,5 +1,5 @@
 import { PerspectiveCamera } from 'three';
-import { CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR, CAMERA_FAR } from '../../constants/camera';
+import { CAMERA_ASPECT, CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR } from '../constants/camera';
 
 /**
  * Singleton class representing the main camera used by the player in game.

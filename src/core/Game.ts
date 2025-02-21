@@ -1,8 +1,8 @@
-import Player from "./Units/Player";
-import Camera from "./Scene/Camera";
-import Renderer from "./Scene/Renderer";
-import Scene from "./Scene/Scene";
-import World from "./World/World";
+import Camera from "../scene/Camera";
+import Renderer from "../scene/Renderer";
+import Scene from "../scene/Scene";
+import Player from "../units/Player";
+import World from "../world/World";
 
 /**
  * Manages the game logic, rendering and utilities.
