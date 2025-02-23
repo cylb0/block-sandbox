@@ -78,9 +78,9 @@ class World {
         const chunk = this.getChunkAt(position);
         if (!chunk) return null;
 
-        const blockX = Math.floor((position.x % CHUNK_SIZE + CHUNK_SIZE) % CHUNK_SIZE);
+        const blockX = ((Math.floor(position.x) % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
         const blockY = Math.floor(position.y);
-        const blockZ = Math.floor((position.z % CHUNK_SIZE + CHUNK_SIZE) % CHUNK_SIZE);
+        const blockZ = ((Math.floor(position.z) % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE;
 
         return chunk.getBlock(blockX, blockY, blockZ);
     }

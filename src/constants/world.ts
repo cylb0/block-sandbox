@@ -14,7 +14,7 @@ export const WORLD_SIZE = { size: 2, depth: 4 };
  * 
  * - A chunk is a square with a fixed number of blocks on x and z axes.
  */
-export const CHUNK_SIZE = 2;
+export const CHUNK_SIZE = 1;
 
 /**
  * Offset applied to each chunk's position to align with world origin.

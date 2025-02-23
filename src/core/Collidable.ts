@@ -63,8 +63,21 @@ abstract class Collidable {
      * @param position - The position to check.
      * @returns `true` if there is a collision, `false` otherwise.
      */
-    public checkCollision(position: Vector3): boolean {
+    public checkPointCollision(position: Vector3): boolean {
         return this.boundingBox.containsPoint(position);
+    }
+
+    /**
+     * Checks if this object's collides with another `Collidable` object.
+     *
+     * - Uses `THREE.Box3.intersectsBox()` to check for intersection.
+     * @param collidable - The other collidable object to check collision with.
+     * @returns `true` if there is a collision, `false` otherwise.
+     */
+    public checkObjectCollision(collidable: Collidable): boolean {
+        this.updateBoundingBox();
+        collidable.updateBoundingBox();
+        return this.boundingBox.intersectsBox(collidable.boundingBox);
     }
 }
 

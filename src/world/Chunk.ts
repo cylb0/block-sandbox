@@ -71,7 +71,8 @@ class Chunk {
         const worldX = this.position.x + x;
         const worldZ = this.position.z + z;
         const worldY = y;
-        const maxY = Math.floor(Math.random() * WORLD_SIZE.depth / 2);
+        // const maxY = Math.floor(Math.random() * WORLD_SIZE.depth / 2);
+        const maxY = 1;
         if (y < maxY) return new TestBlock(new Vector3(worldX, worldY, worldZ));
 
         return null;
@@ -108,7 +109,7 @@ class Chunk {
      * @returns The block at the specified location or `null` if empty.
      */
     public getBlock(x: number, y: number, z: number): Block | null {
-        return this.blocks[x][y][z];
+        return this.blocks[x]?.[y]?.[z];
     }
 
     /**

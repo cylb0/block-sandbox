@@ -1,13 +1,12 @@
-import { ArrowHelper, BoxGeometry, Camera, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import { ArrowHelper, Box3, BoxGeometry, Camera, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import World from "../world/World";
 import Collidable from "../core/Collidable";
-import { PLAYER_BASE_SPEED, PLAYER_DIMENSIONS, PLAYER_OFFSET, PLAYER_SPAWN_POSITION } from "../constants/player";
+import { JUMP_VELOCITY, PLAYER_BASE_SPEED, PLAYER_DIMENSIONS, PLAYER_OFFSET, PLAYER_SPAWN_POSITION } from "../constants/player";
 import IRenderable from "../interfaces/IRenderable";
 import { CAMERA_ROTATION_SENSITIVITY } from "../constants/camera";
 import IMovable from "../interfaces/IMovable";
 import Scene from "../scene/Scene";
-import { CHUNK_SIZE, GRAVITY, MAX_VELOCITY, WORLD_SIZE } from "../constants/world";
-import { BLOCK_OFFSET, BLOCK_SIZE } from "../constants/block";
+import { GRAVITY, MAX_VELOCITY } from "../constants/world";
 import Block from "../blocks/Block";
 
 class Player extends Collidable implements IMovable, IRenderable {
@@ -19,13 +18,15 @@ class Player extends Collidable implements IMovable, IRenderable {
     /** Vertical velocity of the player, used for gravity or jumps. */
     private velocityY: number = 0; 
     /** Tracks the state of movement keys. */
-    private keys: { [key: string]: boolean } = { q: false, z: false, d: false, s: false };
+    private keys: { [key: string]: boolean } = {};
     /** Tracks the state of the mouse button. */
     private isMouseDown: boolean;
     /** Debugging tool to visualize the player's forward direction. */
     private arrowHelper: ArrowHelper | null = null;
     /** Wether the player is currently on the ground. */
     private isGrounded: boolean = false;
+
+    private isJumping: boolean = false;
 
     /**
      * Creates a new `Player` instance.
@@ -44,8 +45,8 @@ class Player extends Collidable implements IMovable, IRenderable {
         super(position, playerGroup);
 
         // this.object.add(camera);
-        camera.position.set(4, 4, 4);
-        camera.lookAt(3, 0, 0);
+        camera.position.set(0, 5, 3);
+        camera.lookAt(0, 0, 0);
 
         this.scene = scene;
         this.camera = camera;
@@ -66,12 +67,24 @@ class Player extends Collidable implements IMovable, IRenderable {
 
     /**
      * Moves the player depending on user inputs.
-     * 
-     * - Negates direction on the y axis to prevent flying.
+     * - Calls `handleKeyInputs()`.
+     * - Calls `updatedBoundingBox()` for it to match player's new position.
+     * - Calls `updateGroundedState()` to check if player should fall from his next position.
      * - Applies gravity.
-     * - Updates bounding box of the player.
     */
     public move(): void {
+        this.handleKeyInputs();
+        this.updateBoundingBox();
+        this.updateGroundedState();
+        this.applyGravity();
+    }
+
+    /**
+     * Handles user key inuts and applies movements.
+     * - Negates direction on the y axis to prevent flying.
+     * - Moves the player.
+     */
+    private handleKeyInputs(): void {
         const direction = this.getForwardDirection();
         direction.y = 0;
         const right = this.getRightDirection();
@@ -80,21 +93,19 @@ class Player extends Collidable implements IMovable, IRenderable {
         if (this.keys['KeyD']) this.moveDirection(right, -1);
         if (this.keys['KeyW']) this.moveDirection(direction, 1)
         if (this.keys['KeyS']) this.moveDirection(direction, -1);
-        this.applyGravity();
-        this.updateBoundingBox();
+        if (this.keys['Space']) this.jump();
     }
 
     /**
      * Moves the player in a given direction.
      * 
-     * - Calls `updateGroundedState()` to check if player should fall from his next position.
      * @param direction - The normalized direction vector.
      * @param multiplier - The movement intensity (negative to move backwards).
      */
     public moveDirection(direction: Vector3, multiplier: number): void {
+        // TODO: check for directional collision
         const nextPosition = this.object.position.clone().addScaledVector(direction, this.speed * multiplier);
         this.position = nextPosition;
-        this.updateGroundedState();
     }
 
     /**
@@ -104,55 +115,141 @@ class Player extends Collidable implements IMovable, IRenderable {
      * - Calls `handleGroundCollision()` to check for collision and adjust position.
      */
     private applyGravity(): void {
-        if (this.isGrounded) return;
-    
+        if (this.isGrounded && !this.isJumping) {
+            this.velocityY = 0;
+            return;
+        }
+
         this.velocityY += GRAVITY;
         if (this.velocityY > MAX_VELOCITY) {
             this.velocityY = MAX_VELOCITY;
         }
-
-        const nextPosition = this.object.position.clone();
-        nextPosition.y += this.velocityY;
-        
-        this.handleGroundCollision(nextPosition);
+        this.handleGroundCollision();
     }
 
     /**
-     * Updates the `isGrounded` state by checking if there is a block below.
+     * Starts a jump if the player is grounded and not jumping already.
+     *
+     * - Uses `JUMP_VELOCITY` to set player's vertical velocity.
+     * - Updates `isGrounded` and `isPlaying`.
+     */
+    private jump(): void {
+        if (!this.isGrounded || this.isJumping) return;
+        this.velocityY = JUMP_VELOCITY;
+        this.isGrounded = false;
+        this.isJumping = true;
+    }
+
+    /**
+     * Updates the `isGrounded` state by checking if there is a block below player.
      * 
-     * - If no block is found below, gravity will be applied.
+     * - If no block is found below, check if player hit bedrock otherwise gravity will be applied.
      */
     private updateGroundedState(): void {
-        const checkPosition = this.position.clone();
-        checkPosition.y -= .1;
-        this.isGrounded = this.getBlockAt(checkPosition) !== null || this.isBelowBedrock(checkPosition);
+        const blocksBelow = this.getBlocksBelowPlayer(this.boundingBox);
+        this.isGrounded = !!blocksBelow.length || this.isBelowBedrock(this.position);
     }
 
     /**
      * Handles collision with the ground.
      * 
-     * - If the player will hit a block, adjust his position to stand on top.
+     * - If the player is jumping (positive `velocityY`), ignores ground collision check.
+     * - Clones the player's current bounding box and adds a delta-Y corresponding to nextPosition.
      * - If the player is below bedock, resets position to `PLAYER_OFFSET`.
-     * - Otherwise, let him free fall.
-     * 
-     * @param nextPosition - The player's next computed position.
+     * - If no blocks are found, let him freefall.
+     * - Otherwise adjust his position to stand on top block below and calls `updateBoundingBox()` to match new position.
      */
-    private handleGroundCollision(nextPosition: Vector3): void {
-        const blockBelow = this.getBlockAt(nextPosition);
-        if (blockBelow == null) {
-            if (this.isBelowBedrock(nextPosition)) {
-                this.velocityY = 0;
-                this.isGrounded = true;
-                this.position.y = PLAYER_OFFSET;
-            } else {
-                this.isGrounded = false;
-                this.position.y += this.velocityY;
-            }
+    private handleGroundCollision(): void {
+        if (this.velocityY > 0) {
+            this.isGrounded = false;
+            this.position.y += this.velocityY;
             return;
         }
-        this.velocityY = 0;
+
+        const nextPosition = this.object.position.clone();
+        nextPosition.y += this.velocityY;
+        const nextBoundingBox = this.getNextPositionBoundingBox(nextPosition);
+
+        const blocksBelowNextPosition = this.getBlocksBelowPlayer(nextBoundingBox);
+
+        if (this.isBelowBedrock(nextPosition)) {
+            this.isGrounded = true;
+            this.velocityY = 0;
+            this.isJumping = false;
+            this.position.y = PLAYER_OFFSET;
+            return;
+        }
+
+        if (!blocksBelowNextPosition.length) {
+            this.isGrounded = false;
+            this.position.y += this.velocityY;
+            return;
+        }
+
         this.isGrounded = true;
-        this.position.y = blockBelow.position.y + 1 + PLAYER_OFFSET;
+        this.velocityY = 0;
+        this.isJumping = false;
+        this.position.y = blocksBelowNextPosition[0].position.y + 1 + PLAYER_OFFSET;
+        this.updateBoundingBox();
+    }
+
+    /**
+     * Computes the bounding box for the given `nextPosition`.
+     *
+     * - Clones the current bounding box.
+     * - Moves it using the difference between `this.position` and `nextPosition`.
+     * @param nextPosition - The position to move the bounding box to.
+     * @returns A new `THREE.Box3` representing the bounding box at `nextPosition`.
+     */
+    private getNextPositionBoundingBox(nextPosition: Vector3): Box3 {
+        const deltaVector = this.getNextPositionDelta(nextPosition);
+        const nextBoundingBox = this.boundingBox.clone();
+        nextBoundingBox.min.add(deltaVector);
+        nextBoundingBox.max.add(deltaVector);
+        return nextBoundingBox;
+    }
+
+    /**
+     * Returns the delta vector between current position and nextPosition.
+     *
+     * - Clones the current `THREE.Vector3` position.
+     * - Substracts nextPosition.
+     * 
+     * @param nextPosition - The `THREE.Vector3` to get a delta from.
+     * @returns A `THREE.Vector3` representing the delta between both positions.
+     */
+    private getNextPositionDelta(nextPosition: Vector3): Vector3 {
+        return nextPosition.clone().sub(this.position);
+    }
+
+    /**
+     * Retrieves all blocks directly below the given player's bounding box to determine
+     * if the player is on solid ground.
+     *
+     * - Rounds the bounding box's bottom corners coordinates.
+     * - Iterates over all `(x, z)` positions to retrieve blocks and add them to a array.
+     *
+     * @param box - The `THREE.Box3` bounding box representing a player position.
+     * @returns An array of blocks found below the bounding box.
+     */
+    private getBlocksBelowPlayer(box: Box3): Array<Block> {
+        const blocksBelow: Array<Block> = [];
+
+        const minX = Math.round(box.min.x);
+        const maxX = Math.round(box.max.x);
+        const minZ = Math.round(box.min.z);
+        const maxZ = Math.round(box.max.z);
+        const y = box.min.y;
+
+        for (let x = minX; x <= maxX; x++) {
+            for (let z = minZ; z <= maxZ; z++) {
+                const blockPosition = new Vector3(x, y, z);
+                const block = this.getBlockAt(blockPosition);
+                if (block) blocksBelow.push(block);
+            }
+        }
+
+        return blocksBelow;
     }
 
     /**
@@ -187,6 +284,8 @@ class Player extends Collidable implements IMovable, IRenderable {
      */
     private onKeyDown(event: KeyboardEvent): void {
         this.keys[event.code] = true;
+
+        // if (event.code === 'Space') this.jump();
     }
 
     /**
