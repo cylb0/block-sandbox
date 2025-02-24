@@ -7,7 +7,7 @@ import { BLOCK_SIZE } from "./block";
  * - `height`: The player's height in world units.
  * - `length`: The player's length in world units.
  */
-export const PLAYER_DIMENSIONS = { width: .8, height: 2, length: .8 };
+export const PLAYER_DIMENSIONS = { width: .5, height: 2, length: .5 };
 
 /** Defines the player's base spawn position in the world. */
 export const PLAYER_SPAWN_POSITION = { x: 0, y: 5, z: 0 };

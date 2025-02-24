@@ -11,6 +11,8 @@ import Block from "../blocks/Block";
 import { BLOCK_SIZE } from "../constants/block";
 
 class Player extends Collidable implements IMovable, IRenderable {
+    private touchStartX: number = 0;
+    private touchStartY: number = 0;
     private scene: Scene;
     private camera: Camera;
     private world: World;
@@ -26,7 +28,7 @@ class Player extends Collidable implements IMovable, IRenderable {
     private arrowHelper: ArrowHelper | null = null;
     /** Wether the player is currently on the ground. */
     private isGrounded: boolean = false;
-
+    /** Wether the player is currently jumping. */
     private isJumping: boolean = false;
 
     /**
@@ -45,7 +47,7 @@ class Player extends Collidable implements IMovable, IRenderable {
         const position = new Vector3(PLAYER_SPAWN_POSITION.x, PLAYER_SPAWN_POSITION.y, PLAYER_SPAWN_POSITION.z);
         super(position, playerGroup);
 
-        // this.object.add(camera);
+        this.object.add(camera);
         camera.position.set(1.5, 5, 3);
         camera.lookAt(1.5, 0, 0);
 
@@ -108,8 +110,8 @@ class Player extends Collidable implements IMovable, IRenderable {
      */
     public moveDirection(direction: Vector3, multiplier: number): void {
         const nextPosition = this.object.position.clone().addScaledVector(direction, this.speed * multiplier);
-        const isExitingWorld = this.handleBoundariesCollision(nextPosition);
-        if (isExitingWorld) return;
+        // const isExitingWorld = this.handleBoundariesCollision(nextPosition);
+        // if (isExitingWorld) return;
         const isColliding = this.handleDirectionalCollision(nextPosition);
         if (!isColliding) {
             this.position = nextPosition;
@@ -410,6 +412,28 @@ class Player extends Collidable implements IMovable, IRenderable {
     }
 
     /**
+     * Handles mouse down events.
+     *
+     * - Toggles `isMouseDown`.
+     * - Removes cursor.
+     */
+    private onMouseDown(event: MouseEvent): void {
+        this.isMouseDown = true;
+        document.body.style.cursor = 'none';
+    }
+
+    /**
+     * Handles mouse up events.
+     *
+     * - Toggles `isMouseDown`.
+     * - Displays cursor.
+     */
+    private onMouseUp(event: MouseEvent): void {
+        this.isMouseDown = false;
+        document.body.style.cursor = 'default';
+    }
+
+    /**
      * Handles mouse movement for camera rotation when mouse is clicked.
      *
      * Updates:
@@ -424,6 +448,63 @@ class Player extends Collidable implements IMovable, IRenderable {
         this.object.rotation.y -= event.movementX * CAMERA_ROTATION_SENSITIVITY;
         this.camera.rotation.x -= event.movementY * CAMERA_ROTATION_SENSITIVITY;
         this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
+    }
+
+    /**
+     * Handles touch start events.
+     *
+     * - If more than one touch is detected, ignores the event (prevents multi-touch).
+     * - Sets `isMouseDown` to true.
+     * - Stores the initial touch coordinates for movement calculations.
+     * 
+     * @param event - The `TouchEvent` containing input.
+     */
+    private onTouchStart(event: TouchEvent): void {
+        if (event.touches.length > 1) return;
+        this.isMouseDown = true;
+        this.touchStartX = event.touches[0].clientX;
+        this.touchStartY = event.touches[0].clientY;
+    }
+
+    /**
+     * Handles touch end events.
+     *
+     * - Resets `isMOuseDown` when input stops.
+     * 
+     * @param event - The `TouchEvent` containing input.
+     */
+    private onTouchEnd(event: TouchEvent): void {
+        this.isMouseDown = false;
+    }
+
+    /**
+     * Handles touch move events.
+     *
+     * - Prevents default behavior.
+     * - If the user is not touching, exits.
+     * - If more than one touch is detected, ignores the event (prevents multi-touch).
+     * - Computes delta movement between previous touch and current one.
+     * - Adjust camera rotation and limits vertical rotation to prevent flipping.
+     * - Updates `touchStartX` and `touchStartY` for next movement.
+     * 
+     * @param event - The `TouchEvent` containing input.
+     */
+    private onTouchMove(event: TouchEvent): void {
+        if (!this.isMouseDown || event.touches.length > 1) return;
+        event.preventDefault();
+
+        const touchX = event.touches[0].clientX;
+        const touchY = event.touches[0].clientY;
+
+        const deltaX = touchX - this.touchStartX;
+        const deltaY = touchY - this.touchStartY;
+
+        this.object.rotation.y -= deltaX * CAMERA_ROTATION_SENSITIVITY;
+        this.camera.rotation.x -= deltaY * CAMERA_ROTATION_SENSITIVITY;
+        this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
+
+        this.touchStartX = touchX;
+        this.touchStartY = touchY;
     }
 
     /**
@@ -458,18 +539,17 @@ class Player extends Collidable implements IMovable, IRenderable {
      * - `contextmenu`: Disables context menu on right-click.
      */
     private initEventListeners(): void {
-        document.addEventListener('keydown', (e) => this.onKeyDown(e));
-        document.addEventListener('keyup', (e) => this.onKeyUp(e));
-        document.addEventListener('mousedown', () => {
-            this.isMouseDown = true
-            document.body.style.cursor = 'none';
-        });
-        document.addEventListener('mouseup', () => {
-            this.isMouseDown = false
-            document.body.style.cursor = 'default';
-        });
-        document.addEventListener('mousemove', (event) => this.onMouseMove(event));
+        document.addEventListener('keydown', this.onKeyDown.bind(this));
+        document.addEventListener('keyup', this.onKeyUp.bind(this));
+
+        document.addEventListener('mousedown', this.onMouseDown.bind(this));
+        document.addEventListener('mouseup', this.onMouseUp.bind(this));
+        document.addEventListener('mousemove', this.onMouseMove.bind(this));
         document.addEventListener('contextmenu', (event) => event.preventDefault());
+
+        document.addEventListener('touchstart', this.onTouchStart.bind(this));
+        document.addEventListener('touchend', this.onTouchEnd.bind(this));
+        document.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
     }
 
     /**

@@ -22,6 +22,5 @@ export const WORLD_OFFSET = (WORLD_SIZE.size * CHUNK_SIZE) / 2;
 
 /** Y-axis acceleration. */
 export const GRAVITY = -.01;
-
 /** Maximum falling speed to prevent infinite acceleration. */
 export const MAX_VELOCITY = 1;
