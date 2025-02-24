@@ -1,5 +1,4 @@
 import { BLOCK_SIZE } from "./block";
-import { CHUNK_SIZE, WORLD_SIZE } from "./world";
 
 /**
  * Represents the dimensions of the player model (hitbox).
@@ -11,9 +10,19 @@ import { CHUNK_SIZE, WORLD_SIZE } from "./world";
 export const PLAYER_DIMENSIONS = { width: .8, height: 2, length: .8 };
 
 /** Defines the player's base spawn position in the world. */
-export const PLAYER_SPAWN_POSITION = { x: -.2, y: 5, z: -.2 };
+export const PLAYER_SPAWN_POSITION = { x: 0, y: 5, z: 0 };
 
-export const PLAYER_OFFSET = PLAYER_DIMENSIONS.height / 2 - BLOCK_SIZE / 2;
+/** Represents the player's vertical offset relative on ground. */
+export const PLAYER_VERTICAL_OFFSET = PLAYER_DIMENSIONS.height / 2 - BLOCK_SIZE / 2;
+
+/** Represents the player's x-axis offset. */
+export const PLAYER_X_OFFSET = PLAYER_DIMENSIONS.width / 2 + BLOCK_SIZE / 2;
+
+/** Represents the player's z-axis offset. */
+export const PLAYER_Z_OFFSET = PLAYER_DIMENSIONS.length / 2 + BLOCK_SIZE / 2;
+
+/** Safe distance to keep between player and blocks to prevent clipping. */
+export const PLAYER_BLOCK_DISTANCE = .01;
 
 /**
  * Defines the base movement speed of the player.

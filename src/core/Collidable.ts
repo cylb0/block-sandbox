@@ -3,7 +3,7 @@ import { Box3, Object3D, Vector3 } from "three";
 /**
  * Base class for all collidable objects.
  *
- * - Provides `boundingBox` for collision detection.
+ * - Provides `getBoundingBox` for collision detection.
  * - Implements `checkCollision()`.
  * - Used by static and moving objects.
  */
@@ -12,9 +12,6 @@ abstract class Collidable {
      * The `THREE.Object3D` representing the entity.
      */
     public object: Object3D;
-
-    /** The object's bounding box for collision detection. */
-    protected boundingBox: Box3;
 
     /**
      * Creates a new collidable object.
@@ -25,7 +22,6 @@ abstract class Collidable {
     constructor(position: Vector3, object: Object3D) {
         this.object = object;
         this.object.position.copy(position);
-        this.boundingBox = new Box3().setFromObject(object);
     }
 
     /**
@@ -47,14 +43,17 @@ abstract class Collidable {
      */
     set position(newPosition: Vector3) {
         this.object.position.copy(newPosition);
-        this.updateBoundingBox();
     }
 
     /**
-     * Updates the object's bounding box position.
+     * Computes and returns the bounding box of the object at its current position.
+     *
+     * - Uses `THREE.Box3.setFromObject()` to get an up to date bounding box.
+     *
+     * @returns The current bounding box of the object.
      */
-    protected updateBoundingBox(): void {
-        this.boundingBox.setFromObject(this.object);
+    public getBoundingBox(): Box3 {
+        return new Box3().setFromObject(this.object);
     }
 
     /**
@@ -64,7 +63,7 @@ abstract class Collidable {
      * @returns `true` if there is a collision, `false` otherwise.
      */
     public checkPointCollision(position: Vector3): boolean {
-        return this.boundingBox.containsPoint(position);
+        return this.getBoundingBox().containsPoint(position);
     }
 
     /**
@@ -75,9 +74,7 @@ abstract class Collidable {
      * @returns `true` if there is a collision, `false` otherwise.
      */
     public checkObjectCollision(collidable: Collidable): boolean {
-        this.updateBoundingBox();
-        collidable.updateBoundingBox();
-        return this.boundingBox.intersectsBox(collidable.boundingBox);
+        return this.getBoundingBox().intersectsBox(collidable.getBoundingBox());
     }
 }
 

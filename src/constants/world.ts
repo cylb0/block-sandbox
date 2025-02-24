@@ -1,6 +1,3 @@
-import { Vector3 } from "three";
-import { BLOCK_OFFSET } from "./block";
-
 /**
  * Represents the size of the game world.
  *
@@ -14,7 +11,7 @@ export const WORLD_SIZE = { size: 2, depth: 4 };
  * 
  * - A chunk is a square with a fixed number of blocks on x and z axes.
  */
-export const CHUNK_SIZE = 1;
+export const CHUNK_SIZE = 2;
 
 /**
  * Offset applied to each chunk's position to align with world origin.
@@ -25,5 +22,6 @@ export const WORLD_OFFSET = (WORLD_SIZE.size * CHUNK_SIZE) / 2;
 
 /** Y-axis acceleration. */
 export const GRAVITY = -.01;
+
 /** Maximum falling speed to prevent infinite acceleration. */
 export const MAX_VELOCITY = 1;

@@ -8,10 +8,6 @@ import Game from './core/Game';
 const scene = Scene.getScene();
 const camera = Camera.getCamera();
 GameHelper.displayAxesHelper();
-// GameHelper.displayGrid();
-// GameHelper.displayExampleCube();
-GameHelper.displayFloor();
-// GameHelper.displayBoundaries();
 
 const world = new World(scene);
 world.addAmbientLight({ intensity: 1 });

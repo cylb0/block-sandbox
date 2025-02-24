@@ -2,7 +2,7 @@ import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMa
 import { WORLD_SIZE, CHUNK_SIZE } from "../constants/world";
 import TestBlock from "../blocks/TestBlock";
 import Scene from "../scene/Scene";
-import { BLOCK_OFFSET, BLOCK_SIZE } from "../constants/block";
+import { BLOCK_OFFSET_VECTOR, BLOCK_SIZE } from "../constants/block";
 
 /**
  * A utility service for rendering game related visual helpers
@@ -34,6 +34,7 @@ class GameHelper {
      */
     public static displayGrid(): void {
         let gridHelper = new GridHelper();
+        gridHelper.position.add(BLOCK_OFFSET_VECTOR)
         Scene.getScene().add(gridHelper);
     }
 
@@ -45,14 +46,14 @@ class GameHelper {
      * @param color - The color of the floor.
      */
     public static displayFloor(color: ColorRepresentation = 0x228b00): void {
-        const groundSize = WORLD_SIZE.size * CHUNK_SIZE;
+        const groundSize = WORLD_SIZE.size * CHUNK_SIZE * 2;
         const groundGeometry = new PlaneGeometry(groundSize, groundSize);
         const groundMaterial = new MeshBasicMaterial({ color });
         groundMaterial.transparent = true;
         groundMaterial.opacity = .5;
         const ground = new Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
-        ground.position.add(BLOCK_OFFSET);
+        ground.position.y -= BLOCK_SIZE / 2;
         Scene.getScene().add(ground);
     }
     
