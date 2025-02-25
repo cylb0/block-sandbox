@@ -101,8 +101,8 @@ class Player extends Collidable implements IMovable, IRenderable {
      * Moves the player in a given direction.
      * 
      * - Computes next position.
-     * - Checks and handles the player exiting world boundaries before moving.
-     * - Checks and handles directional collision before moving player.
+     * - Checks if player will exit world boundaries, if so returns early.
+     * - Check for directional block collision.
      * - Updates position if no collision is detected.
      * 
      * @param direction - The normalized direction vector.
@@ -110,8 +110,8 @@ class Player extends Collidable implements IMovable, IRenderable {
      */
     public moveDirection(direction: Vector3, multiplier: number): void {
         const nextPosition = this.object.position.clone().addScaledVector(direction, this.speed * multiplier);
-        // const isExitingWorld = this.handleBoundariesCollision(nextPosition);
-        // if (isExitingWorld) return;
+        const isExitingWorld = this.handleBoundariesCollision(nextPosition);
+        if (isExitingWorld) return;
         const isColliding = this.handleDirectionalCollision(nextPosition);
         if (!isColliding) {
             this.position = nextPosition;
@@ -311,28 +311,14 @@ class Player extends Collidable implements IMovable, IRenderable {
      * @returns `true` if a collision is handled, `false` otherwise.
      */
     private handleDirectionalCollision(nextPosition: Vector3): boolean {
-        const deltaVector = this.getNextPositionDelta(nextPosition);
         const nextBoundingBox = this.getNextPositionBoundingBox(nextPosition);
+
         const allCollidingBlocks = this.getAllCollidingBlocks(nextBoundingBox);
         const sideCollidingBlocks = allCollidingBlocks.filter(block =>
             block.position.y > nextBoundingBox.min.y
         );
 
         if (sideCollidingBlocks.length) {
-            const colidingBlock = allCollidingBlocks[0];
-
-            if (deltaVector.x > 0) {
-                this.position.x = colidingBlock.position.x - PLAYER_X_OFFSET - .01;
-            } else if (deltaVector.x < 0) {
-                this.position.x = colidingBlock.position.x + PLAYER_X_OFFSET + .01;
-            }
-
-            if (deltaVector.z > 0) {
-                this.position.z = colidingBlock.position.z - PLAYER_Z_OFFSET - .01;
-            } else if (deltaVector.z < 0) {
-                this.position.z = colidingBlock.position.z + PLAYER_Z_OFFSET + .01;
-            }
-
             return true;
         }
 
@@ -560,6 +546,23 @@ class Player extends Collidable implements IMovable, IRenderable {
      */
     private getBlockAt(position: Vector3): Block | null {
         return this.world.getBlockAt(position)
+    }
+
+    /**
+     * @override
+     * Computes and returns an **axis-aligned bounding box** for the player.
+     * 
+     * - Overrides `getBoundingBox()` from `Collidable`.
+     * - Ignores player's rotation to prevent weird collision behavior.
+     * 
+     * @returns The current axis-aligned bounding box of the object.
+     */
+    public getBoundingBox(): Box3 {
+        const currentPosition = this.position.clone();
+        return new Box3().setFromCenterAndSize(
+            currentPosition,
+            new Vector3(PLAYER_DIMENSIONS.width, PLAYER_DIMENSIONS.height, PLAYER_DIMENSIONS.length)
+        );
     }
 }
 
