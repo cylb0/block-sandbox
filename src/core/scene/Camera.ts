@@ -1,5 +1,5 @@
 import { PerspectiveCamera } from 'three';
-import { CAMERA_ASPECT, CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR } from '@/constants/camera';
+import { CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR, getCameraAspect } from '@/constants/camera';
 
 /**
  * Singleton class representing the main camera used by the player in game.
@@ -9,9 +9,9 @@ import { CAMERA_ASPECT, CAMERA_FAR, CAMERA_FOV, CAMERA_NEAR } from '@/constants/
  */
 class Camera {
     /** The singleton instance of the `Camera` class */
-    static #instance: Camera | null = null;
+    private static instance: Camera | null = null;
     /** The `THREE.PerspectiveCamera` instance used in the scene. */
-    static #camera: PerspectiveCamera;
+    private static camera: PerspectiveCamera;
 
     /**
      * Private constructor to prevent instantiation.
@@ -19,7 +19,7 @@ class Camera {
      * - Initializes the `THREE.PerspectiveCamera` with predefined settings.
      */
     private constructor() {
-        Camera.#camera = new PerspectiveCamera(CAMERA_FOV, CAMERA_ASPECT, CAMERA_NEAR, CAMERA_FAR);
+        Camera.camera = new PerspectiveCamera(CAMERA_FOV, getCameraAspect(), CAMERA_NEAR, CAMERA_FAR);
     }
 
     /**
@@ -31,10 +31,10 @@ class Camera {
      *  @returns The singleton instance of the `Camera` class.
      */
     public static getInstance(): Camera {
-        if (!Camera.#instance) {
-            Camera.#instance = new Camera();
+        if (!Camera.instance) {
+            Camera.instance = new Camera();
         }
-        return Camera.#instance;
+        return Camera.instance;
     }
 
     /**
@@ -45,7 +45,7 @@ class Camera {
      * @returns The `THREE.PerspectiveCamera` instance.
      */
     public static getCamera(): PerspectiveCamera {
-        return Camera.getInstance(), Camera.#camera;
+        return Camera.getInstance(), Camera.camera;
     }
 }
 
