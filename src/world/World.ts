@@ -1,7 +1,7 @@
 import { AmbientLight, ColorRepresentation, DirectionalLight, Scene, Vector3 } from 'three';
-import { CHUNK_SIZE, WORLD_OFFSET, WORLD_SIZE } from '../constants/world';
-import Chunk from './Chunk';
-import Block from '../blocks/Block';
+import { CHUNK_SIZE, WORLD_SIZE } from '@/constants/world';
+import Chunk from '@/world/Chunk';
+import Block from '@/blocks/Block';
 
 /**
  * Represents the game world, manages chunks, terrain, lighting and scene elements.

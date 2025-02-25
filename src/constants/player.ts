@@ -1,4 +1,4 @@
-import { BLOCK_SIZE } from "./block";
+import { BLOCK_SIZE } from "@/constants/block";
 
 /**
  * Represents the dimensions of the player model (hitbox).

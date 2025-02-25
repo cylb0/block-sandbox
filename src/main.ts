@@ -1,9 +1,9 @@
-import World from './world/World';
-import GameHelper from './services/GameHelper';
-import Scene from './scene/Scene';
-import Camera from './scene/Camera';
-import Player from './units/Player';
-import Game from './core/Game';
+import World from '@/world/World';
+import GameHelper from '@/services/GameHelper';
+import Scene from '@/core/scene/Scene';
+import Camera from '@/core/scene/Camera';
+import Player from '@/units/Player';
+import Game from '@/core/Game';
 
 const scene = Scene.getScene();
 const camera = Camera.getCamera();

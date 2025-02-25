@@ -1,8 +1,7 @@
 import { Vector3 } from "three";
-import { CHUNK_SIZE, WORLD_SIZE } from "../constants/world";
-import TestBlock from "../blocks/TestBlock";
-import Block from "../blocks/Block";
-import { block } from "sharp";
+import { CHUNK_SIZE, WORLD_SIZE } from "@/constants/world";
+import TestBlock from "@/blocks/TestBlock";
+import Block from "@/blocks/Block";
 
 /**
  * Represents a chunk in the game world containing a 3D grid of blocks.

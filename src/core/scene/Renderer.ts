@@ -1,5 +1,5 @@
 import { WebGLRenderer } from 'three';
-import Camera from './Camera';
+import Camera from '@/core/scene/Camera';
 
 /**
  * Singleton class responsible for rendering the scene.

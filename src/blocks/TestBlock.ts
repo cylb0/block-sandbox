@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import Block from "./Block";
+import Block from "@/blocks/Block";
 
 class TestBlock extends Block {
     constructor(position: Vector3) {

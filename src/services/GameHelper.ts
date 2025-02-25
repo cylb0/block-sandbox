@@ -1,8 +1,8 @@
 import { AxesHelper, GridHelper, ColorRepresentation, PlaneGeometry, MeshBasicMaterial, Mesh, Vector3 } from "three";
-import { WORLD_SIZE, CHUNK_SIZE } from "../constants/world";
-import TestBlock from "../blocks/TestBlock";
-import Scene from "../scene/Scene";
-import { BLOCK_OFFSET_VECTOR, BLOCK_SIZE } from "../constants/block";
+import { WORLD_SIZE, CHUNK_SIZE } from "@/constants/world";
+import TestBlock from "@/blocks/TestBlock";
+import Scene from "@/core/scene/Scene";
+import { BLOCK_OFFSET_VECTOR, BLOCK_SIZE } from "@/constants/block";
 
 /**
  * A utility service for rendering game related visual helpers

@@ -1,8 +1,8 @@
 import { BoxGeometry, ColorRepresentation, EdgesGeometry, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, Vector3 } from "three";
-import Collidable from "../core/Collidable";
-import IRenderable from "../interfaces/IRenderable";
-import { BLOCK_SIZE } from "../constants/block";
-import Scene from "../scene/Scene";
+import Collidable from "@/core/Collidable";
+import IRenderable from "@/interfaces/IRenderable";
+import { BLOCK_SIZE } from "@/constants/block";
+import Scene from "@/core/scene/Scene";
 
 /**
  * Abstract base class representing a block in the game.

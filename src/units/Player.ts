@@ -1,14 +1,14 @@
 import { ArrowHelper, Box3, BoxGeometry, Camera, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
-import World from "../world/World";
-import Collidable from "../core/Collidable";
-import { JUMP_VELOCITY, PLAYER_BASE_SPEED, PLAYER_DIMENSIONS, PLAYER_VERTICAL_OFFSET, PLAYER_SPAWN_POSITION, PLAYER_X_OFFSET, PLAYER_Z_OFFSET } from "../constants/player";
-import IRenderable from "../interfaces/IRenderable";
-import { CAMERA_ROTATION_SENSITIVITY } from "../constants/camera";
-import IMovable from "../interfaces/IMovable";
-import Scene from "../scene/Scene";
-import { CHUNK_SIZE, GRAVITY, MAX_VELOCITY, WORLD_SIZE } from "../constants/world";
-import Block from "../blocks/Block";
-import { BLOCK_SIZE } from "../constants/block";
+import World from "@/world/World";
+import Collidable from "@/core/Collidable";
+import { JUMP_VELOCITY, PLAYER_BASE_SPEED, PLAYER_DIMENSIONS, PLAYER_VERTICAL_OFFSET, PLAYER_SPAWN_POSITION } from "@/constants/player";
+import IRenderable from "@/interfaces/IRenderable";
+import { CAMERA_ROTATION_SENSITIVITY } from "@/constants/camera";
+import IMovable from "@/interfaces/IMovable";
+import Scene from "@/core/scene/Scene";
+import { CHUNK_SIZE, GRAVITY, MAX_VELOCITY, WORLD_SIZE } from "@/constants/world";
+import Block from "@/blocks/Block";
+import { BLOCK_SIZE } from "@/constants/block";
 
 class Player extends Collidable implements IMovable, IRenderable {
     private touchStartX: number = 0;
