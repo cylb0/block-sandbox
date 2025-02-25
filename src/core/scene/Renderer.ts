@@ -1,5 +1,6 @@
 import { WebGLRenderer } from 'three';
 import Camera from '@/core/scene/Camera';
+import { getCameraAspect } from '@/constants/camera';
 
 /**
  * Singleton class responsible for rendering the scene.
@@ -10,10 +11,10 @@ import Camera from '@/core/scene/Camera';
  */
 class Renderer {
     /** The singleton instance of the `Renderer` class */
-    static #instance: Renderer | null = null;
+    private static instance: Renderer | null = null;
     
     /** The `THREE.WebGLRenderer` instance used to render the scene. */
-    static #renderer: WebGLRenderer;
+    private static renderer: WebGLRenderer;
 
     /**
      * Private constructor to prevent instantiation.
@@ -22,9 +23,9 @@ class Renderer {
      * - Adds an event listener for resizing events.
      */
     private constructor() {
-        Renderer.#renderer = new WebGLRenderer();
-        Renderer.#renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(Renderer.#renderer.domElement);
+        Renderer.renderer = new WebGLRenderer();
+        Renderer.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(Renderer.renderer.domElement);
 
         window.addEventListener('resize', () => this.onResize());
     }
@@ -38,10 +39,10 @@ class Renderer {
      *  @returns The singleton instance of the `Renderer` class.
      */
     public static getInstance(): Renderer {
-        if (!Renderer.#instance) {
-            Renderer.#instance = new Renderer();
+        if (!Renderer.instance) {
+            Renderer.instance = new Renderer();
         }
-        return Renderer.#instance;
+        return Renderer.instance;
     }
 
     /**
@@ -52,7 +53,7 @@ class Renderer {
      * @returns The `THREE.WebGLRenderer` instance.
      */
     public static getRenderer(): WebGLRenderer {
-        return Renderer.getInstance(), Renderer.#renderer;
+        return Renderer.getInstance(), Renderer.renderer;
     }
 
     /**
@@ -63,9 +64,9 @@ class Renderer {
      */
     private onResize(): void {
         const camera = Camera.getCamera();
-        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = getCameraAspect();
         camera.updateProjectionMatrix();
-        Renderer.#renderer.setSize(window.innerWidth, window.innerHeight);
+        Renderer.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 }
 

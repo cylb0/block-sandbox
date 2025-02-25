@@ -9,10 +9,10 @@ import { Scene as ThreeScene} from 'three';
  */
 class Scene {
     /** The singleton instance of the `Scene` class */
-    static #instance: Scene | null = null;
+    private static instance: Scene | null = null;
 
     /** The `THREE.Scene` instance used to render the scene. */
-    static #scene: ThreeScene;
+    private static scene: ThreeScene;
     
     /**
      * Private constructor to prevent instantiation.
@@ -20,7 +20,7 @@ class Scene {
      * - Initializes the `THREE.Scene`.
      */
     private constructor() {
-        Scene.#scene = new ThreeScene();
+        Scene.scene = new ThreeScene();
     }
 
     /**
@@ -32,10 +32,10 @@ class Scene {
      *  @returns The singleton instance of the `Scene` class.
      */
     public static getInstance(): Scene {
-        if (!Scene.#instance) {
-            Scene.#instance = new Scene();
+        if (!Scene.instance) {
+            Scene.instance = new Scene();
         }
-        return Scene.#instance;
+        return Scene.instance;
     }
 
     /**
@@ -46,15 +46,15 @@ class Scene {
      * @returns The `THREE.WebGLRenderer` instance.
      */
     public static getScene(): ThreeScene {
-        return Scene.getInstance(), Scene.#scene;
+        return Scene.getInstance(), Scene.scene;
     }
     
     /**
      * Resets the scene by clearing all objects and creating a new instance.
      */
     public static reset(): void {
-        Scene.#scene.clear();
-        Scene.#scene = new ThreeScene();
+        Scene.scene.clear();
+        Scene.scene = new ThreeScene();
     }
 }
     
