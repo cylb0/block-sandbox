@@ -1,4 +1,5 @@
 import { Box3, Object3D, Vector3 } from "three";
+import Renderable from "./Renderable";
 
 /**
  * Base class for all collidable objects.
@@ -7,12 +8,7 @@ import { Box3, Object3D, Vector3 } from "three";
  * - Implements `checkCollision()`.
  * - Used by static and moving objects.
  */
-abstract class Collidable {
-    /**
-     * The `THREE.Object3D` representing the entity.
-     */
-    public object: Object3D;
-
+abstract class Collidable extends Renderable {
     /**
      * Creates a new collidable object.
      * 
@@ -20,7 +16,7 @@ abstract class Collidable {
      * @param object - The 3D object representing the entity.
      */
     constructor(position: Vector3, object: Object3D) {
-        this.object = object;
+        super(object);
         this.object.position.copy(position);
     }
 

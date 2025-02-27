@@ -1,8 +1,6 @@
 import { BoxGeometry, ColorRepresentation, EdgesGeometry, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import Collidable from "@/core/Collidable";
-import IRenderable from "@/interfaces/IRenderable";
 import { BLOCK_SIZE } from "@/constants/block";
-import Scene from "@/core/scene/Scene";
 
 /**
  * Abstract base class representing a block in the game.
@@ -10,7 +8,7 @@ import Scene from "@/core/scene/Scene";
  * - Each block has a position, color and opacity.
  * - Implements `IRenderable` to ensure all blocks can be rendered in the scene.
  */
-abstract class Block extends Collidable implements IRenderable {
+abstract class Block extends Collidable {
     /**
      * Creates a new block instance.
      * 
@@ -23,13 +21,6 @@ abstract class Block extends Collidable implements IRenderable {
     constructor(position: Vector3, color: ColorRepresentation, opacity?: number) {
         const mesh = Block.createStandardBlockMesh(color, opacity);
         super(position, mesh);
-    }
-
-    /**
-     * Renders the block in the scene.
-     */
-    public render(): void {
-        Scene.getScene().add(this.object);
     }
 
     /**
