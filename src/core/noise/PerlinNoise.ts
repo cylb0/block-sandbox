@@ -1,5 +1,3 @@
-import { PERLIN_NOISE_AMPLITUDE } from "@/constants/world";
-
 type Gradient = [number, number];
 
 const gradients: Gradient[] = [
@@ -48,10 +46,9 @@ class PerlinNoise {
      * @param y - y-coordinate.
      * @returns The computed noise value between -1 and 1;
      */
-    public noise(x: number, y: number): number {
+    public noise(x: number, y: number, amplitude: number): number {
         let total = 0;
         let frequency = 1;
-        let amplitude = PERLIN_NOISE_AMPLITUDE;
         let maxValue = 0;
 
         for (let i = 0 ; i < 5 ; i++) {
