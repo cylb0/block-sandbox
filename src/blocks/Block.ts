@@ -1,4 +1,4 @@
-import { BoxGeometry, ColorRepresentation, EdgesGeometry, LineBasicMaterial, LineSegments, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import { BoxGeometry, ColorRepresentation, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import Collidable from "@/core/Collidable";
 import { BLOCK_SIZE } from "@/constants/block";
 
@@ -38,11 +38,6 @@ abstract class Block extends Collidable {
             blockMaterial.opacity = opacity;
         }
         const blockMesh = new Mesh(blockGeometry, blockMaterial);
-
-        const edgesGeometry = new EdgesGeometry(blockGeometry);
-        const edgesMaterial = new LineBasicMaterial({ color: 0x000000 });
-        const edges = new LineSegments(edgesGeometry, edgesMaterial);
-        blockMesh.add(edges);
 
         return blockMesh;
     }
