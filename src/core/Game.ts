@@ -42,6 +42,7 @@ class Game {
         const animate = () => {
             this.player.move();
             Renderer.getRenderer().render(Scene.getScene(), Camera.getCamera());
+
             requestAnimationFrame(animate);
         };
         animate();

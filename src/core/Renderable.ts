@@ -11,10 +11,14 @@ abstract class Renderable {
      * - Can be a `Mesh`, `Group` or any other `Object3D`.
      * - Used for transformations like position or rotation.
      */
-    protected object: Object3D;
+    protected _object: Object3D;
 
     constructor(object: Object3D) {
-        this.object = object;
+        this._object = object;
+    }
+
+    public get object(): Object3D {
+        return this._object;
     }
 
     /**

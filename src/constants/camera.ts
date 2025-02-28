@@ -1,6 +1,8 @@
+import { RENDER_BLOCK_DISTANCE } from "./world";
+
 export const CAMERA_FOV = 75;
 export const CAMERA_NEAR = .1;
-export const CAMERA_FAR = 1000;
+export const CAMERA_FAR = RENDER_BLOCK_DISTANCE * 2;
 export const CAMERA_ROTATION_SENSITIVITY = .002;
 export const CAMERA_PLAYER_DISTANCE = 5;
 

@@ -1,4 +1,5 @@
 import { BLOCK_SIZE } from "@/constants/block";
+import { WORLD_SIZE } from "./world";
 
 /**
  * Represents the dimensions of the player model (hitbox).
@@ -10,7 +11,7 @@ import { BLOCK_SIZE } from "@/constants/block";
 export const PLAYER_DIMENSIONS = { width: .5, height: 2, length: .5 };
 
 /** Defines the player's base spawn position in the world. */
-export const PLAYER_SPAWN_POSITION = { x: 0, y: 5, z: 0 };
+export const PLAYER_SPAWN_POSITION = { x: 0, y: WORLD_SIZE.depth, z: 0 };
 
 /** Represents the player's vertical offset relative on ground. */
 export const PLAYER_VERTICAL_OFFSET = PLAYER_DIMENSIONS.height / 2 - BLOCK_SIZE / 2;

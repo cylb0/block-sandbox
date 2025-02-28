@@ -48,7 +48,7 @@ class Player extends Collidable implements IMovable {
 
         this.object.add(camera);
         camera.position.set(1.5, 5, 3);
-        camera.lookAt(1.5, 0, 0);
+        // camera.lookAt(1.5, 0, 0);
 
         this.scene = scene;
         this.camera = camera;
@@ -62,11 +62,13 @@ class Player extends Collidable implements IMovable {
 
     /**
      * Moves the player depending on user inputs.
+     * - Calls `World.updateRenderedBlocks()` to update blocks on the scene.
      * - Calls `handleKeyInputs()`.
      * - Calls `updateGroundedState()` to check if player should fall from his next position.
      * - Calls `appliGravity()` to apply y-axis changes.
     */
     public move(): void {
+        this.world.updateRenderedBlocks(this.position);
         this.handleKeyInputs();
         this.updateGroundedState();
         this.applyGravity();
@@ -204,7 +206,7 @@ class Player extends Collidable implements IMovable {
             for (let y = minY; y <= maxY; y++) {
                 for (let z = minZ; z <= maxZ; z++) {
                     const blockPosition = new Vector3(x, y, z);
-                    const block = this.getBlockAt(blockPosition);
+                    const block = this.getBlockAtPosition(blockPosition);
                     if (block) collidingBlocks.push(block);
                 }
             }
@@ -282,7 +284,6 @@ class Player extends Collidable implements IMovable {
      * @param block - The block that the player lands on.
      */
     private handleHitBlockBelow(block: Block): void {
-        console.log('hit block')
         this.isGrounded = true;
         this.velocityY = 0;
         this.isJumping = false;
@@ -536,8 +537,8 @@ class Player extends Collidable implements IMovable {
      * @param position - The world coordinates to look for a block.
      * @returns A `Block` if found, `null` otherwise.
      */
-    private getBlockAt(position: Vector3): Block | null {
-        return this.world.getBlockAt(position)
+    private getBlockAtPosition(position: Vector3): Block | null {
+        return this.world.getBlockAtPosition(position)
     }
 
     /**
